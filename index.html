@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nocturnal Scratch Tracker App</title>
+<style>
+/* 🎨 สไตล์หลักและระบบเปลี่ยนธีม (Light/Dark Mode) */
+:root {
+--bg-color: #f4f6f9;
+--card-bg: #ffffff;
+--text-color: #333333;
+--primary-color: #0056b3;
+}
+[data-theme="dark"] {
+--bg-color: #121212;
+--card-bg: #1e1e1e;
+--text-color: #f5f5f5;
+--primary-color: #3792ff;
+}
+body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-color); color: var(--text-color); margin: 0; padding: 20px; transition: 0.3s; }
+.screen { display: none; max-width: 400px; margin: 0 auto; background: var(--card-bg); padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+.active { display: block; }
+input, select, button { width: 100%; padding: 10px; margin: 10px 0; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; }
+button { background-color: var(--primary-color); color: white; border: none; font-weight: bold; cursor: pointer; }
+.knowledge-box { background: rgba(0,86,179,0.1); padding: 15px; border-radius: 8px; font-size: 14px; margin-top: 15px; }
+.checkbox-group { display: flex; gap: 10px; margin: 10px 0; }
+.theme-btn { background: #6c757d; float: right; width: auto; font-size: 12px; padding: 5px 10px; }
+</style>
+</head>
+<body>
+
+<!-- 1️⃣ หน้าจอที่ 1: หน้า LOGIN -->
+<div id="loginScreen" class="screen active">
+<h2>เข้าสู่ระบบ (Login)</h2>
+<input type="text" id="username" placeholder="ชื่อผู้ใช้ (admin)">
+<input type="password" id="password" placeholder="รหัสผ่าน (1234)">
+<button onclick="login()">เข้าสู่ระบบ</button>
+</div>
+
+<!-- 2️⃣ หน้าจอที่ 2: หน้าคีย์ข้อมูลผู้ใช้ -->
+<div id="profileScreen" class="screen">
+<h2>ข้อมูลผู้ใช้งาน</h2>
+<input type="text" id="name" placeholder="ชื่อ-นามสกุล">
+<input type="number" id="age" placeholder="อายุ (ปี)">
+<input type="number" id="weight" placeholder="น้ำหนัก (กก.)">
+<input type="number" id="height" placeholder="ส่วนสูง (ซม.)">
+
+<label>ประเภทโรคผิวหนังที่เป็น:</label>
+<div class="checkbox-group">
+<input type="checkbox" id="eczema" value="ผื่นภูมิแพ้ผิวหนัง"> <label for="eczema">ผื่นภูมิแพ้ผิวหนัง</label>
+</div>
+<div class="checkbox-group">
+<input type="checkbox" id="psoriasis" value="สะเก็ดเงิน"> <label for="psoriasis">สะเก็ดเงิน</label>
+</div>
+
+<button onclick="saveProfile()">บันทึกข้อมูล</button>
+</div>
+
+<!-- 3️⃣ หน้าจอที่ 3: หน้าหลัก / โฮมแดชบอร์ด -->
+<div id="dashboardScreen" class="screen">
+<button class="theme-btn" onclick="toggleTheme()">เปลี่ยนธีม 🌓</button>
+<h2>หน้าหลักแอปพลิเคชัน</h2>
+<p>สวัสดีคุณ, <span id="display_name" style="font-weight:bold;"></span></p>
+<p>โรคของคุณ: <span id="display_disease" style="color:red;"></span></p>
+<hr>
+
+<!-- ส่วนจำลองฟังก์ชันเดิม -->
+<h4>📊 สภาพแวดล้อม & ตรวจจับ (ฟังก์ชันเดิม)</h4>
+<p>PM2.5: 15 µg/m³ | ความชื้น: 58% | ตรวจจับเสียงเกาอัตโนมัติ</p>
+
+<!-- ส่วนความรู้ที่เพิ่มเข้ามา -->
+<div class="knowledge-box">
+<h4>💡 ความรู้และการบรรเทาอาการ</h4>
+<p><strong>อาการของโรค:</strong> ผิวแห้ง คันรุนแรงในเวลากลางคืน ผื่นแดงอักเสบ[span_4](start_span)[span_4](end_span)</p>
+<p><strong>วิธีบรรเทา:</strong> ทามอยส์เจอไรเซอร์สูตรอ่อนโยนทันทีหลังอาบน้ำ หลีกเลี่ยงห้องที่อากาศแห้งหรือฝุ่นละอองสูง และใช้ยาทาตามแพทย์สั่งอย่างเคร่งครัด[span_5](start_span)[span_5](end_span)</p>
+</div>
+</div>
+
+<!-- 📜 ระบบควบคุมการทำงาน (JavaScript) -->
+<script>
+// 1. ระบบ Login
+function login() {
+const user = document.getElementById('username').value;
+const pass = document.getElementById('password').value;
+if(user === "admin" && pass === "1234") {
+navigate('loginScreen', 'profileScreen');
+} else {
+alert('ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง!');
+}
+}
+
+// 2. ระบบบันทึกข้อมูลและเช็กเงื่อนไขโรค
+function saveProfile() {
+const name = document.getElementById('name').value;
+const hasEczema = document.getElementById('eczema').checked;
+const hasPsoriasis = document.getElementById('psoriasis').checked;
+
+let diseaseResult = "ไม่ได้ระบุ";
+if (hasEczema && hasPsoriasis) { diseaseResult = "ผื่นภูมิแพ้ผิวหนัง และ สะเก็ดเงิน"; }
+else if (hasEczema) { diseaseResult = "ผื่นภูมิแพ้ผิวหนัง"; }
+else if (hasPsoriasis) { diseaseResult = "สะเก็ดเงิน"; }
+
+// นำไปแสดงผลในหน้าถัดไป
+document.getElementById('display_name').innerText = name;
+document.getElementById('display_disease').innerText = diseaseResult;
+
+navigate('profileScreen', 'dashboardScreen');
+}
+
+// 3. ฟังก์ชันสลับหน้าจอ
+function navigate(fromId, toId) {
+document.getElementById(fromId).classList.remove('active');
+document.getElementById(toId).classList.add('active');
+}
+
+// 4. ฟังก์ชันเปลี่ยนธีม (Light/Dark Toggle)
+function toggleTheme() {
+const currentTheme = document.documentElement.getAttribute('data-theme');
+if (currentTheme === 'dark') {
+document.documentElement.setAttribute('data-theme', 'light');
+} else {
+document.documentElement.setAttribute('data-theme', 'dark');
+}
+}
+</script>
+</body>
+</html>
