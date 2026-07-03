@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Nocturnal Scratch Tracker App</title>
+<!-- นำเข้าไลบรารีสร้างกราฟ Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
 /* 🎨 สไตล์หลักและระบบเปลี่ยนธีม (Light/Dark Mode) */
 :root {
@@ -11,26 +13,47 @@
 --card-bg: #ffffff;
 --text-color: #333333;
 --primary-color: #0056b3;
+--secondary-color: #28a745;
 }
 [data-theme="dark"] {
 --bg-color: #121212;
 --card-bg: #1e1e1e;
 --text-color: #f5f5f5;
 --primary-color: #3792ff;
+--secondary-color: #4cd137;
 }
-body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-color); color: var(--text-color); margin: 0; padding: 20px; transition: 0.3s; }
-.screen { display: none; max-width: 400px; margin: 0 auto; background: var(--card-bg); padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-color); color: var(--text-color); margin: 0; padding: 20px; transition: 0.3s; padding-bottom: 80px; }
+.screen { display: none; max-width: 450px; margin: 0 auto; background: var(--card-bg); padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
 .active { display: block; }
-input, select, button { width: 100%; padding: 10px; margin: 10px 0; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; }
+input, select, button { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; font-size: 16px; }
 button { background-color: var(--primary-color); color: white; border: none; font-weight: bold; cursor: pointer; }
 .knowledge-box { background: rgba(0,86,179,0.1); padding: 15px; border-radius: 8px; font-size: 14px; margin-top: 15px; }
 .checkbox-group { display: flex; gap: 10px; margin: 10px 0; }
-.theme-btn { background: #6c757d; float: right; width: auto; font-size: 12px; padding: 5px 10px; }
+.theme-btn { background: #6c757d; float: right; width: auto; font-size: 12px; padding: 5px 10px; margin: 0; }
+
+/* 📱 แถบเมนูด้านล่างสุด (Bottom Navigation) */
+.bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card-bg); display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid #ccc; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); z-index: 100; }
+.nav-item { background: none; color: var(--text-color); border: none; padding: 5px; margin: 0; font-size: 12px; width: auto; font-weight: normal; }
+.nav-item.active-nav { color: var(--primary-color); font-weight: bold; }
+
+/* 🎙️ สไตล์หน้าบันทึกเสียง */
+.record-box { text-align: center; padding: 30px 10px; border: 2px dashed #ccc; border-radius: 12px; margin: 20px 0; }
+.counter-display { font-size: 48px; font-weight: bold; color: var(--primary-color); margin: 15px 0; }
+.status-dot { inline-block; width: 12px; height: 12px; background-color: #ccc; border-radius: 50%; display: inline-block; margin-right: 5px; }
+.recording .status-dot { background-color: red; animation: blink 1s infinite; }
+
+/* 📊 สไตล์หน้าสรุปสถิติ */
+.severity-badge { display: inline-block; padding: 5px 15px; border-radius: 20px; font-weight: bold; color: white; margin-top: 5px; }
+.sev-low { background-color: #28a745; }
+.sev-mid { background-color: #ffc107; color: #333; }
+.sev-high { background-color: #dc3545; }
+
+@keyframes blink { 50% { opacity: 0; } }
 </style>
 </head>
 <body>
 
-<!-- 1️⃣ หน้าจอที่ 1: หน้า LOGIN -->
+<!-- 1️⃣ SCREEN 1: LOGIN -->
 <div id="loginScreen" class="screen active">
 <h2>เข้าสู่ระบบ (Login)</h2>
 <input type="text" id="username" placeholder="ชื่อผู้ใช้ (admin)">
@@ -38,7 +61,7 @@ button { background-color: var(--primary-color); color: white; border: none; fon
 <button onclick="login()">เข้าสู่ระบบ</button>
 </div>
 
-<!-- 2️⃣ หน้าจอที่ 2: หน้าคีย์ข้อมูลผู้ใช้ -->
+<!-- 2️⃣ SCREEN 2: USER PROFILE -->
 <div id="profileScreen" class="screen">
 <h2>ข้อมูลผู้ใช้งาน</h2>
 <input type="text" id="name" placeholder="ชื่อ-นามสกุล">
@@ -54,31 +77,69 @@ button { background-color: var(--primary-color); color: white; border: none; fon
 <input type="checkbox" id="psoriasis" value="สะเก็ดเงิน"> <label for="psoriasis">สะเก็ดเงิน</label>
 </div>
 
-<button onclick="saveProfile()">บันทึกข้อมูล</button>
+<button onclick="saveProfile()">บันทึกข้อมูลและเข้าสู่แอป</button>
 </div>
 
-<!-- 3️⃣ หน้าจอที่ 3: หน้าหลัก / โฮมแดชบอร์ด -->
+<!-- 3️⃣ SCREEN 3: DASHBOARD / HOME (หน้า 1 เดิม) -->
 <div id="dashboardScreen" class="screen">
 <button class="theme-btn" onclick="toggleTheme()">เปลี่ยนธีม 🌓</button>
-<h2>หน้าหลักแอปพลิเคชัน</h2>
-<p>สวัสดีคุณ, <span id="display_name" style="font-weight:bold;"></span></p>
-<p>โรคของคุณ: <span id="display_disease" style="color:red;"></span></p>
+<h2>หน้าหลัก (Home)</h2>
+<p>สวัสดีคุณ: <span id="display_name" style="font-weight:bold;">-</span></p>
+<p>โรคของคุณ: <span id="display_disease" style="color:var(--primary-color); font-weight:bold;">-</span></p>
 <hr>
 
-<!-- ส่วนจำลองฟังก์ชันเดิม -->
-<h4>📊 สภาพแวดล้อม & ตรวจจับ (ฟังก์ชันเดิม)</h4>
-<p>PM2.5: 15 µg/m³ | ความชื้น: 58% | ตรวจจับเสียงเกาอัตโนมัติ</p>
-
-<!-- ส่วนความรู้ที่เพิ่มเข้ามา -->
 <div class="knowledge-box">
-<h4>💡 ความรู้และการบรรเทาอาการ</h4>
-<p><strong>อาการของโรค:</strong> ผิวแห้ง คันรุนแรงในเวลากลางคืน ผื่นแดงอักเสบ[span_4](start_span)[span_4](end_span)</p>
-<p><strong>วิธีบรรเทา:</strong> ทามอยส์เจอไรเซอร์สูตรอ่อนโยนทันทีหลังอาบน้ำ หลีกเลี่ยงห้องที่อากาศแห้งหรือฝุ่นละอองสูง และใช้ยาทาตามแพทย์สั่งอย่างเคร่งครัด[span_5](start_span)[span_5](end_span)</p>
+<h4>💡 อาการและวิธีบรรเทาโรคผิวหนัง</h4>
+<p><strong>อาการหลัก:</strong> ผิวแห้งเป็นขุย คันยุบยิบอย่างรุนแรงโดยเฉพาะเวลาค่ำคืนหรือช่วงนอนหลับ</p>
+<p><strong>วิธีบรรเทา:</strong> ชโลมมอยส์เจอไรเซอร์หนาๆ ทันทีหลังอาบน้ำเสร็จภายใน 3 นาที ปรับอุณหภูมิห้องนอนไม่ให้เย็นจัดเกินไปเพื่อป้องกันผิวแห้ง และหลีกเลี่ยงการเกาโดยตรง</p>
 </div>
 </div>
 
-<!-- 📜 ระบบควบคุมการทำงาน (JavaScript) -->
+<!-- 4️⃣ SCREEN 4: SLEEP AUDIO TRACKER (หน้า 2 ใหม่ จับเสียงเกา) -->
+<div id="sleepScreen" class="screen">
+<h2>ระบบดักจับเสียงเกาตอนนอน</h2>
+<p>วางโทรศัพท์ไว้ข้างที่นอนเพื่อเปิดไมค์วิเคราะห์เสียงเกาอัจฉริยะ</p>
+
+<div id="recordBox" class="record-box">
+<div id="statusIndicator"><span class="status-dot"></span> <span id="statusText">ระบบปิดอยู่</span></div>
+<div class="counter-display"><span id="scratchCount">0</span> ครั้ง</div>
+<p style="font-size: 14px; color: #777;">จำนวนการตรวจพบเสียงเกาในคืนนี้</p>
+</div>
+
+<button id="btnAudio" onclick="toggleAudioTracking()" style="background-color: var(--secondary-color);">시작 เริ่มตรวจจับเสียงเกา</button>
+<p style="font-size: 12px; text-align: center; color: #888; margin-top: 5px;">*หมายเหตุ: เป็นระบบจำลองการประมวลผลเสียงเพื่อทดสอบหน้าต่างแอป</p>
+</div>
+
+<!-- 5️⃣ SCREEN 5: HISTORY GRAPH & SEVERITY (หน้า 3 สรุปรายสัปดาห์) -->
+<div id="historyScreen" class="screen">
+<h2>สรุปผลประจำสัปดาห์</h2>
+
+<!-- ส่วนจำลองระดับความรุนแรง -->
+<div class="knowledge-box" style="text-align: center;">
+<h4 style="margin: 0;">📊 ระดับความรุนแรงสัปดาห์นี้</h4>
+<div id="severityBadge" class="severity-badge sev-mid">ปานกลาง (Moderate)</div>
+<p style="font-size: 13px; margin: 8px 0 0 0;">เฉลี่ยเกา <b>32 ครั้งต่อคืน</b> ควรทาครีมเพิ่มก่อนนอน</p>
+</div>
+
+<div style="margin-top: 20px; position: relative; height:280px; width:100%">
+<canvas id="weeklyChart"></canvas>
+</div>
+</div>
+
+<!-- 📱 แถบเนวิเกชั่นด้านล่าง (จะแสดงหลังจาก Login แล้ว) -->
+<nav id="mainNav" class="bottom-nav" style="display: none;">
+<button class="nav-item active-nav" id="nav-home" onclick="changeTab('dashboardScreen', 'nav-home')">🏠<br>หน้าหลัก</button>
+<button class="nav-item" id="nav-sleep" onclick="changeTab('sleepScreen', 'nav-sleep')">🌙<br>ตรวจจับเสียง</button>
+<button class="nav-item" id="nav-history" onclick="changeTab('historyScreen', 'nav-history')">📊<br>สรุปสถิติ</button>
+</nav>
+
+<!-- 📜 ระบบการทำงานเบื้องหลัง (JavaScript) -->
 <script>
+let isRecording = false;
+let scratchCounter = 0;
+let scratchInterval;
+let weeklyChartInstance = null;
+
 // 1. ระบบ Login
 function login() {
 const user = document.getElementById('username').value;
@@ -86,35 +147,104 @@ const pass = document.getElementById('password').value;
 if(user === "admin" && pass === "1234") {
 navigate('loginScreen', 'profileScreen');
 } else {
-alert('ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง!');
+alert('ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง! (ใช้ admin และ 1234)');
 }
 }
 
-// 2. ระบบบันทึกข้อมูลและเช็กเงื่อนไขโรค
+// 2. ระบบบันทึกข้อมูลผู้ใช้
 function saveProfile() {
-const name = document.getElementById('name').value;
+const name = document.getElementById('name').value || "ผู้ใช้งานทั่วไป";
 const hasEczema = document.getElementById('eczema').checked;
 const hasPsoriasis = document.getElementById('psoriasis').checked;
 
-let diseaseResult = "ไม่ได้ระบุ";
+let diseaseResult = "โรคผิวหนังทั่วไป";
 if (hasEczema && hasPsoriasis) { diseaseResult = "ผื่นภูมิแพ้ผิวหนัง และ สะเก็ดเงิน"; }
 else if (hasEczema) { diseaseResult = "ผื่นภูมิแพ้ผิวหนัง"; }
 else if (hasPsoriasis) { diseaseResult = "สะเก็ดเงิน"; }
 
-// นำไปแสดงผลในหน้าถัดไป
 document.getElementById('display_name').innerText = name;
 document.getElementById('display_disease').innerText = diseaseResult;
 
+// แสดงแถบเมนูด้านล่าง และย้ายไปหน้าหลัก
+document.getElementById('mainNav').style.display = 'flex';
 navigate('profileScreen', 'dashboardScreen');
+initChart(); // เรียกโหลดกราฟรอไว้
 }
 
-// 3. ฟังก์ชันสลับหน้าจอ
+// 3. ฟังก์ชันสลับหน้าจอพื้นฐาน
 function navigate(fromId, toId) {
 document.getElementById(fromId).classList.remove('active');
 document.getElementById(toId).classList.add('active');
 }
 
-// 4. ฟังก์ชันเปลี่ยนธีม (Light/Dark Toggle)
+// 4. แถบเมนูด้านล่าง สลับหน้าไปมา
+function changeTab(targetScreenId, navItemId) {
+// ซ่อนทุกหน้าหลักยกเว้นหน้าล็อกอิน/โปรไฟล์
+const screens = ['dashboardScreen', 'sleepScreen', 'historyScreen'];
+screens.forEach(scr => document.getElementById(scr).classList.remove('active'));
+
+// เปิดหน้าจำเพาะ
+document.getElementById(targetScreenId).classList.add('active');
+
+// เปลี่ยนสีปุ่มเมนูที่เลือก
+const navItems = ['nav-home', 'nav-sleep', 'nav-history'];
+navItems.forEach(item => document.getElementById(item).classList.remove('active-nav'));
+document.getElementById(navItemId).classList.add('active-nav');
+
+// รีเฟรชตัวกราฟเวลาเปลี่ยนมาหน้าสถิติเพื่อความสวยงาม
+if(targetScreenId === 'historyScreen') {
+setTimeout(() => { if(weeklyChartInstance) weeklyChartInstance.update(); }, 100);
+}
+}
+
+// 5. หน้าตรวจจับเสียงเกาตอนนอน (ระบบจำลองเสียงอัจฉริยะ)
+function toggleAudioTracking() {
+const rBox = document.getElementById('recordBox');
+const statusT = document.getElementById('statusText');
+const btn = document.getElementById('btnAudio');
+
+if(!isRecording) {
+// เปลี่ยนสถานะเป็นเริ่มงาน
+isRecording = true;
+rBox.classList.add('recording');
+statusT.innerText = "กำลังฟังและตรวจจับเสียงเกา...";
+btn.innerText = "🛑 หยุดการตรวจจับเสียง";
+btn.style.backgroundColor = "#dc3545";
+
+// จำลองสุ่มเจอเสียงเกาทุกๆ 4-8 วินาที
+scratchInterval = setInterval(() => {
+scratchCounter++;
+document.getElementById('scratchCount').innerText = scratchCounter;
+updateLiveSeverity(scratchCounter);
+}, Math.floor(Math.random() * 4000) + 4000);
+
+} else {
+// เปลี่ยนสถานะเป็นหยุดงาน
+isRecording = false;
+rBox.classList.remove('recording');
+statusT.innerText = "ระบบปิดอยู่";
+btn.innerText = "▶️ เริ่มตรวจจับเสียงเกา";
+btn.style.backgroundColor = "var(--secondary-color)";
+clearInterval(scratchInterval);
+}
+}
+
+// อัปเดตความรุนแรงแบบเรียลไทม์ตามจำนวนครั้งที่เกาคืนนี้
+function updateLiveSeverity(count) {
+const badge = document.getElementById('severityBadge');
+if(count <= 15) {
+badge.innerText = "น้อย (Mild)";
+badge.className = "severity-badge sev-low";
+} else if(count <= 40) {
+badge.innerText = "ปานกลาง (Moderate)";
+badge.className = "severity-badge sev-mid";
+} else {
+badge.innerText = "รุนแรง (Severe)";
+badge.className = "severity-badge sev-high";
+}
+}
+
+// 6. ระบบเปลี่ยนธีมแอป (Light/Dark Mode)
 function toggleTheme() {
 const currentTheme = document.documentElement.getAttribute('data-theme');
 if (currentTheme === 'dark') {
@@ -122,6 +252,63 @@ document.documentElement.setAttribute('data-theme', 'light');
 } else {
 document.documentElement.setAttribute('data-theme', 'dark');
 }
+if(weeklyChartInstance) initChart(); // วาดกราฟใหม่เพื่อให้สีกราฟเปลี่ยนตามธีม
+}
+
+// 7. ระบบวาดกราฟแท่งผสมกราฟเส้นประจำสัปดาห์ (Chart.js)
+function initChart() {
+const ctx = document.getElementById('weeklyChart').getContext('2d');
+
+// เช็กสีตัวอักษรตามธีมปัจจุบัน
+const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+const textColor = isDark ? '#ffffff' : '#333333';
+
+if(weeklyChartInstance) { weeklyChartInstance.destroy(); }
+
+weeklyChartInstance = new Chart(ctx, {
+data: {
+labels: ['จันทร์', 'อังคาร', 'พุธ', 'พฤหัสฯ', 'ศุกร์', 'เสาร์', 'อาทิตย์'],
+datasets: [
+{
+type: 'bar',
+label: 'จำนวนเกา (ครั้ง/คืน)',
+data: [12, 45, 28, 55, 22, 18, 32],
+backgroundColor: 'rgba(55, 146, 255, 0.6)',
+borderColor: '#3792ff',
+borderWidth: 1,
+borderRadius: 5
+},
+{
+type: 'line',
+label: 'เส้นแนวโน้มความถี่',
+data: [12, 45, 28, 55, 22, 18, 32],
+borderColor: '#dc3545',
+borderWidth: 2,
+fill: false,
+tension: 0.3,
+pointBackgroundColor: '#dc3545'
+}
+]
+},
+options: {
+responsive: true,
+maintainAspectRatio: false,
+plugins: {
+legend: { labels: { color: textColor } }
+},
+scales: {
+y: {
+beginAtZero: true,
+ticks: { color: textColor },
+grid: { color: isDark ? '#333333' : '#e0e0e0' }
+},
+x: {
+ticks: { color: textColor },
+grid: { display: false }
+}
+}
+}
+});
 }
 </script>
 </body>
