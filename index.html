@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Aczema - แอปพลิเคชันดูแลผิวและตรวจจับเสียง</title>
+<title>Aczema - แอปพลิเคชันดูแลผิวเต็มรูปแบบ</title>
 <style>
-/* 🎨 1. ระบบธีมสีสลับเปลี่ยนได้ตามใจชอบ */
+/* 🎨 1. ระบบธีมสีสลับเปลี่ยนได้ */
 :root {
---primary: #1e3799; /* สีน้ำเงินเข้มแบบในรูป */
+--primary: #1e3799;
 --bg: #f4f6f9;
 --card-bg: #ffffff;
 --text: #2c3e50;
@@ -39,7 +39,7 @@ flex-direction: column;
 align-items: center;
 }
 
-/* 📱 จำลองขนาดหน้าจอมือถือให้สวยงามแบบในรูป */
+/* 📱 ขนาดหน้าจอมือถือจำลอง */
 .phone-container {
 width: 100%;
 max-width: 380px;
@@ -54,7 +54,6 @@ position: relative;
 border: 4px solid #2c3e50;
 }
 
-/* 🎨 แถบเลือกธีมด้านบนสุด (อยู่นอกจอมือถือ) */
 .theme-selector {
 display: flex;
 gap: 10px;
@@ -69,7 +68,6 @@ border: 2px solid white;
 box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 }
 
-/* 🔝 Header ของแอป */
 .app-header {
 background-color: var(--primary);
 color: white;
@@ -79,15 +77,14 @@ font-weight: bold;
 font-size: 1.1rem;
 }
 
-/* 📄 ส่วนเนื้อหาที่เปลี่ยนไปตามหน้า 1, 2, 3 */
 .app-content {
 flex: 1;
 padding: 15px;
 overflow-y: auto;
-display: none; /* ซ่อนไว้ก่อน จะเปิดตามหน้าที่เลือก */
+display: none;
 }
 .app-content.active {
-display: block; /* หน้าที่เลือกจะแสดงผล */
+display: block;
 }
 
 .card {
@@ -97,7 +94,6 @@ padding: 15px;
 margin-bottom: 15px;
 }
 
-/* 🔘 ระบบปุ่มเมนูสลับหน้า 1 2 3 ด้านล่างสุด (Bottom Navigation) */
 .app-nav {
 display: flex;
 background: #ffffff;
@@ -115,13 +111,11 @@ cursor: pointer;
 color: #7f8c8d;
 font-weight: bold;
 }
-.nav-item.active {
-color: var(--primary);
-}
+.nav-item.active { color: var(--primary); }
 .nav-item span { font-size: 1.3rem; }
 
-/* 📊 สไตล์พวกดีไซน์พิเศษในหน้า 1, 2, 3 */
 .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center; }
+
 .circle-mic {
 width: 140px;
 height: 140px;
@@ -135,6 +129,7 @@ justify-content: center;
 font-weight: bold;
 font-size: 0.9rem;
 }
+
 .btn-action {
 background: var(--primary);
 color: white;
@@ -145,7 +140,60 @@ border-radius: 8px;
 cursor: pointer;
 font-weight: bold;
 }
-.med-row { display: flex; justify-content: space-between; align-items: center; margin: 5px 0; background: white; padding: 8px; border-radius: 6px; font-size: 0.9rem;}
+.btn-danger {
+background: #e74c3c;
+color: white;
+border: none;
+padding: 3px 8px;
+border-radius: 4px;
+cursor: pointer;
+}
+
+.med-row { display: flex; justify-content: space-between; align-items: center; margin: 5px 0; background: white; padding: 8px; border-radius: 6px; font-size: 0.9rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05);}
+
+/* 🔒 สไตล์หน้าล็อคอิน */
+.login-screen {
+display: flex;
+flex-direction: column;
+justify-content: center;
+padding: 30px;
+height: 100%;
+box-sizing: border-box;
+text-align: center;
+}
+.login-input {
+padding: 12px;
+margin: 8px 0;
+border: 2px solid #ddd;
+border-radius: 8px;
+font-size: 1rem;
+outline: none;
+}
+.login-input:focus { border-color: var(--primary); }
+
+/* 📊 สไตล์กราฟแท่งแบบมินิมอล */
+.chart-container {
+display: flex;
+justify-content: space-around;
+align-items: flex-end;
+height: 150px;
+margin-top: 20px;
+padding-bottom: 10px;
+border-bottom: 2px solid #ddd;
+}
+.chart-bar-wrapper {
+display: flex;
+flex-direction: column;
+align-items: center;
+flex: 1;
+}
+.chart-bar {
+width: 25px;
+background-color: var(--primary);
+border-radius: 5px 5px 0 0;
+transition: height 0.5s ease;
+}
+.chart-label { font-size: 0.75rem; margin-top: 5px; font-weight: bold; }
 </style>
 </head>
 <body>
@@ -160,13 +208,26 @@ font-weight: bold;
 
 <!-- 📱 ตัวเครื่องมือถือจำลอง -->
 <div class="phone-container">
+
+<!-- 🔒 หน้าต่าง Login (จะถูกซ่อนหลังจากเข้าสู่ระบบสำเร็จ) -->
+<div id="loginPage" class="login-screen">
+<h2 style="color: var(--primary); margin-bottom: 5px;">Aczema App</h2>
+<p style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 25px;">กรุณาเข้าสู่ระบบเพื่อใช้งานคลาวด์</p>
+<input type="text" id="username" class="login-input" placeholder="ชื่อผู้ใช้ (admin)">
+<input type="password" id="password" class="login-input" placeholder="รหัสผ่าน (1234)">
+<button class="btn-action" style="margin-top: 15px;" onclick="handleLogin()">เข้าสู่ระบบ</button>
+<p id="login-error" style="color: red; font-size: 0.85rem; margin-top: 10px;"></p>
+</div>
+
+<!-- ตัวแอปหลัก (ซ่อนไว้ก่อนเข้าระบบ) -->
+<div id="mainApp" style="display: none; flex-direction: column; height: 100%;">
 <div class="app-header" id="header-title">Aczema - หน้าแรก</div>
 
 <!-- 🏠 หน้าที่ 1: หน้าสรุปมลภาวะ & บันทึกยาประจำวัน -->
 <div id="page1" class="app-content active">
 <div class="card" style="background: #ebf3ff; border-left: 5px solid #3498db;">
 <h4 style="margin:0 0 10px 0; color:#e74c3c;">🔴 มลภาวะสูง</h4>
-<div class="grid-3">
+<div class="grid-3" style="color: #2c3e50;">
 <div><b>PM2.5</b><br>75 µg/m³</div>
 <div><b>UV</b><br>8 (สูง)</div>
 <div><b>ความชื้น</b><br>38%</div>
@@ -181,10 +242,10 @@ font-weight: bold;
 </div>
 <button class="btn-action" onclick="addPill()">+ บันทึกยา</button>
 <div id="pillContainer" style="margin-top:10px;">
-<!-- รายการยาเริ่มต้น -->
-<div class="med-row"><span>⏰ 10:30 AM - Advantan Cream</span></div>
+<!-- รายการยาจากคลังความจำจะมาโผล่ตรงนี้ -->
 </div>
 </div>
+<button onclick="handleLogout()" style="background: none; border: none; color: #7f8c8d; font-size: 0.8rem; cursor: pointer; text-decoration: underline;">ออกจากระบบ</button>
 </div>
 
 <!-- 🎙️ หน้าที่ 2: หน้าดักฟังเสียงเกาตอนนอน -->
@@ -195,38 +256,43 @@ font-weight: bold;
 </div>
 
 <div class="card" style="text-align: center;">
-<h3>🔍 ตรวจพบเสียงเกา: <span id="scratch-count" style="color:#e74c3c; font-size:1.5rem;">0</span> ครั้ง</h3>
+<h3>🔍 ตรวจพบเสียงเกาวันนี้: <span id="scratch-count" style="color:#e74c3c; font-size:1.5rem;">0</span> ครั้ง</h3>
+<button onclick="resetScratch()" style="font-size:0.75rem; background:#7f8c8d; color:white; border:none; padding:3px 8px; border-radius:4px; cursor:pointer; margin-top:5px;">รีเซ็ตจำนวนครั้ง</button>
 </div>
 
 <button class="btn-action" onclick="startAI()">เปิดระบบไมโครโฟน AI</button>
 <p id="error-log" style="color:red; text-align:center; font-size:0.8rem; margin-top:10px;"></p>
 </div>
 
-<!-- 📊 หน้าที่ 3: หน้าสรุปสถิติกราฟ -->
+<!-- 📊 หน้าที่ 3: หน้าสรุปสถิติกราฟแท่งขยับได้จริง -->
 <div id="page3" class="app-content">
 <h3>📈 สถิติแอปพลิเคชัน</h3>
 <div class="card">
-<p><b>สัปดาห์นี้:</b> ระดับปานกลาง (Moderate)</p>
-<p><b>เฉลี่ยเกา/คืน:</b> 13.5 ครั้ง</p>
-<p><b>ความชื้นเฉลี่ย:</b> 41%</p>
+<p><b>ระดับอาการสัปดาห์นี้:</b> <span id="status-level" style="font-weight:bold; color:#e67e22;">กำลังคำนวณ..</span></p>
+<p><b>รวมจำนวนเกาทั้งสัปดาห์:</b> <span id="total-scratches" style="font-weight:bold;">0</span> ครั้ง</p>
 </div>
-<div style="text-align: center; color: #7f8c8d; margin-top: 30px;">
-📊 [ส่วนนี้แสดงผลกราฟสถิติภาพรวมประจำสัปดาห์]
+
+<h4>📊 กราฟสรุปจำนวนครั้งการเการายวัน</h4>
+<!-- โซนกราฟแท่ง -->
+<div class="chart-container">
+<div class="chart-bar-wrapper"><div id="bar-mon" class="chart-bar" style="height: 40px;"></div><span class="chart-label">จ.</span></div>
+<div class="chart-bar-wrapper"><div id="bar-tue" class="chart-bar" style="height: 25px;"></div><span class="chart-label">อ.</span></div>
+<div class="chart-bar-wrapper"><div id="bar-wed" class="chart-bar" style="height: 55px;"></div><span class="chart-label">พ.</span></div>
+<div class="chart-bar-wrapper"><div id="bar-thu" class="chart-bar" style="height: 30px;"></div><span class="chart-label">พฤ.</span></div>
+<div class="chart-bar-wrapper"><div id="bar-fri" class="chart-bar" style="height: 70px;"></div><span class="chart-label">ศ.</span></div>
+<div class="chart-bar-wrapper"><div id="bar-sat" class="chart-bar" style="height: 10px;"></div><span class="chart-label">ส.</span></div>
+<div class="chart-bar-wrapper"><div id="bar-sun" class="chart-bar" style="height: 0px;"></div><span class="chart-label">อา.</span></div>
 </div>
 </div>
 
-<!-- 🏁 แถบเมนูเปลี่ยนหน้า 1 2 3 ด้านล่างสุด -->
+<!-- 🏁 แถบเมนูเปลี่ยนหน้าด้านล่างสุด -->
 <div class="app-nav">
-<div class="nav-item active" id="nav1" onclick="switchPage(1)">
-<span>🏠</span>หน้าแรก
-</div>
-<div class="nav-item" id="nav2" onclick="switchPage(2)">
-<span>🎙️</span>บันทึกเสียง
-</div>
-<div class="nav-item" id="nav3" onclick="switchPage(3)">
-<span>📊</span>สถิติ
+<div class="nav-item active" id="nav1" onclick="switchPage(1)"><span>🏠</span>หน้าแรก</div>
+<div class="nav-item" id="nav2" onclick="switchPage(2)"><span>🎙️</span>บันทึกเสียง</div>
+<div class="nav-item" id="nav3" onclick="switchPage(3)"><span>📊</span>สถิติ</div>
 </div>
 </div>
+
 </div>
 
 <!-- โหลด TensorFlow.js จาก Google -->
@@ -234,47 +300,115 @@ font-weight: bold;
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/speech-commands@0.4.0/dist/speech-commands.min.js"></script>
 
 <script>
-// 🔗 ⚠️ แปะลิงก์โมเดลของคุณตรงนี้ได้เลยครับ!
+// 🔗 ⚠️ วางลิงก์โมเดลของคุณตรงนี้ได้เลยครับ! (ห้ามลืมเอาลิงก์ตัวจริงจาก Teachable Machine มาใส่นะ)
 const MODEL_URL = "https://teachablemachine.withgoogle.com/models/FcU8wUc4G/";
 
-let scratchCount = 0;
+let scratchCount = parseInt(localStorage.getItem('scratchCount')) || 0;
+let pills = JSON.parse(localStorage.getItem('pills')) || [];
+
+// --- 🔒 ระบบ Login ---
+function handleLogin() {
+const user = document.getElementById('username').value;
+const pass = document.getElementById('password').value;
+
+// กำหนด Username: admin / Password: 1234
+if(user === 'admin' && pass === '1234') {
+localStorage.setItem('isLoggedIn', 'true');
+showApp();
+} else {
+document.getElementById('login-error').innerText = "❌ ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง";
+}
+}
+
+function checkLoginStatus() {
+if(localStorage.getItem('isLoggedIn') === 'true') {
+showApp();
+}
+}
+
+function showApp() {
+document.getElementById('loginPage').style.display = 'none';
+document.getElementById('mainApp').style.display = 'flex';
+renderPills();
+updateScratchUI();
+updateChartValues();
+}
+
+function handleLogout() {
+localStorage.removeItem('isLoggedIn');
+window.location.reload();
+}
 
 // --- 🔄 ฟังก์ชันสลับหน้า 1 2 3 ---
 function switchPage(pageNumber) {
-// ซ่อนทุกหน้า ล้างปุ่ม active
 document.querySelectorAll('.app-content').forEach(p => p.classList.remove('active'));
 document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
 
-// เปิดหน้าที่เลือก
 document.getElementById('page' + pageNumber).classList.add('active');
 document.getElementById('nav' + pageNumber).classList.add('active');
 
-// เปลี่ยนหัวข้อด้านบน
 const titles = ["Aczema - หน้าแรก", "Aczema - บันทึกอาการนอน", "Aczema - สถิติแอปพลิเคชัน"];
 document.getElementById('header-title').innerText = titles[pageNumber - 1];
+
+if(pageNumber === 3) updateChartValues(); // อัปเดตกราฟเวลาเปิดหน้า 3
 }
 
 // --- 🎨 ฟังก์ชันเปลี่ยนธีมสี ---
 function setTheme(themeName) {
 document.body.className = '';
 if(themeName !== 'blue') document.body.classList.add('theme-' + themeName);
+localStorage.setItem('appTheme', themeName);
 }
 
-// --- 💊 บันทึกยาเพิ่มสด ---
+function loadTheme() {
+const savedTheme = localStorage.getItem('appTheme');
+if(savedTheme) setTheme(savedTheme);
+}
+
+// --- 💊 ระบบบันทึกยา (จำข้อมูล LocalStorage) ---
 function addPill() {
 const name = document.getElementById('pName').value;
 const time = document.getElementById('pTime').value;
-if(!name || !time) return alert('กรอกข้อมูลให้ครบจ้า');
+if(!name || !time) return alert('กรุณากรอกข้อมูลให้ครบครับ');
 
-const div = document.createElement('div');
-div.className = 'med-row';
-div.innerHTML = `<span>⏰ ${time} - ${name}</span>`;
-document.getElementById('pillContainer').appendChild(div);
+const newPill = { id: Date.now(), name: name, time: time };
+pills.push(newPill);
+localStorage.setItem('pills', JSON.stringify(pills));
 
+renderPills();
 document.getElementById('pName').value = '';
 }
 
-// --- 🎙️ รันโมเดล AI ฟังเสียงเกา ---
+function deletePill(id) {
+pills = pills.filter(p => p.id !== id);
+localStorage.setItem('pills', JSON.stringify(pills));
+renderPills();
+}
+
+function renderPills() {
+const container = document.getElementById('pillContainer');
+container.innerHTML = "";
+pills.forEach(pill => {
+const div = document.createElement('div');
+div.className = 'med-row';
+div.innerHTML = `<span>⏰ ${pill.time} - ${pill.name}</span>
+<button class="btn-danger" onclick="deletePill(${pill.id})">ลบ</button>`;
+container.appendChild(div);
+});
+}
+
+// --- 🎙️ ระบบนับครั้งเกา AI ---
+function updateScratchUI() {
+document.getElementById('scratch-count').innerText = scratchCount;
+localStorage.setItem('scratchCount', scratchCount);
+}
+
+function resetScratch() {
+scratchCount = 0;
+updateScratchUI();
+updateChartValues();
+}
+
 async function startAI() {
 const aiText = document.getElementById('ai-text');
 const errorLog = document.getElementById('error-log');
@@ -294,20 +428,52 @@ for (let i = 0; i < labels.length; i++) {
 if (scores[i] > scores[maxIdx]) maxIdx = i;
 }
 
-// 🔥 ถ้า AI ทายว่าเป็น "เสียงเกา" (เช็คจากชื่อคลาสที่คุณตั้งในเว็บ)
+// ดักจับชื่อคลาสเสียงเกาของคุณจากเทรนโมเดลเสียง
 if (labels[maxIdx] === "เสียงเกา" && scores[maxIdx] > 0.8) {
 scratchCount++;
-document.getElementById('scratch-count').innerText = scratchCount;
+updateScratchUI();
 aiText.innerText = "💥 เจอเสียงเกา!";
 setTimeout(() => { aiText.innerText = "ฟังเสียงอยู่.."; }, 1500);
 }
 }, { probabilityThreshold: 0.75 });
 
 } catch (e) {
-errorLog.innerText = "⚠️ รันโมเดลไม่ได้ อย่าลืมแก้ลิงก์ MODEL_URL บรรทัด 135 นะครับ";
+errorLog.innerText = "⚠️ ระบบขัดข้อง ตรวจสอบไมค์หรือลิงก์โมเดลหน้าโค้ดตัวแปร MODEL_URL";
 }
+}
+
+// --- 📊 ระบบกราฟแท่งขยับตามจริง ---
+function updateChartValues() {
+// อัปเดตแท่งสถิติวันเสาร์ให้ขยับแบบเรียลไทม์ตามจำนวนเสียงที่ AI ตรวจจับได้วันนี้จริง ๆ
+const satBarHeight = Math.min(scratchCount * 5, 130); // จำกัดความสูงไว้ไม่ให้ทะลุจอ
+document.getElementById('bar-sat').style.height = satBarHeight + "px";
+
+// คำนวณยอดรวมรายสัปดาห์จำลอง
+const baseScratches = 40 + 25 + 55 + 30 + 70 + 10; // ยอดวันอื่นรวมกัน
+const currentTotal = baseScratches + scratchCount;
+document.getElementById('total-scratches').innerText = currentTotal;
+
+// ประเมินผลความรุนแรง
+const statusElement = document.getElementById('status-level');
+if(currentTotal > 250) {
+statusElement.innerText = "Severe (รุนแรงมาก)";
+statusElement.style.color = "#c0392b";
+} else if(currentTotal > 150) {
+statusElement.innerText = "Moderate (ปานกลาง)";
+statusElement.style.color = "#e67e22";
+} else {
+statusElement.innerText = "Mild (น้อย/ปกติ)";
+statusElement.style.color = "#27ae60";
+}
+}
+
+// รันคำสั่งเริ่มแรกเมื่อเปิดหน้ากระดาษเว็บ
+window.onload = function() {
+loadTheme();
+checkLoginStatus();
 }
 </script>
 </body>
 </html>
+
 
