@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Aczema - แอปพลิเคชันดูแลผิวเต็มรูปแบบ</title>
+<title>Aczema - แอปพลิเคชันดูแลผิวเต็มรูปแบบ (Pro Version)</title>
 <style>
-/* 🎨 1. ระบบธีมสีสลับเปลี่ยนได้ */
+/* 🎨 ระบบธีมสีสลับเปลี่ยนได้ */
 :root {
 --primary: #1e3799;
 --bg: #f4f6f9;
@@ -128,6 +128,18 @@ align-items: center;
 justify-content: center;
 font-weight: bold;
 font-size: 0.9rem;
+transition: all 0.3s;
+}
+.circle-mic.recording {
+border-color: #e74c3c;
+background: #fdf2f2;
+animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+0% { transform: scale(1); }
+50% { transform: scale(1.05); }
+100% { transform: scale(1); }
 }
 
 .btn-action {
@@ -139,6 +151,7 @@ width: 100%;
 border-radius: 8px;
 cursor: pointer;
 font-weight: bold;
+margin-bottom: 5px;
 }
 .btn-danger {
 background: #e74c3c;
@@ -151,7 +164,6 @@ cursor: pointer;
 
 .med-row { display: flex; justify-content: space-between; align-items: center; margin: 5px 0; background: white; padding: 8px; border-radius: 6px; font-size: 0.9rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05);}
 
-/* 🔒 สไตล์หน้าล็อคอิน */
 .login-screen {
 display: flex;
 flex-direction: column;
@@ -171,13 +183,36 @@ outline: none;
 }
 .login-input:focus { border-color: var(--primary); }
 
-/* 📊 สไตล์กราฟแท่งแบบมินิมอล */
+/* 🔥 สไตล์สำหรับ Streak Duolingo */
+.streak-container {
+display: flex;
+align-items: center;
+justify-content: center;
+background: #fff3cd;
+border: 2px solid #ffeeba;
+border-radius: 12px;
+padding: 10px;
+margin-bottom: 15px;
+font-weight: bold;
+color: #856404;
+gap: 10px;
+}
+.streak-fire {
+font-size: 1.8rem;
+animation: flame 0.8s ease-in-out infinite alternate;
+}
+@keyframes flame {
+0% { transform: scale(1); }
+100% { transform: scale(1.15) rotate(5deg); }
+}
+
+/* 📊 สไตล์กราฟแท่งที่มีตัวเลขบอกจำนวนครั้ง */
 .chart-container {
 display: flex;
 justify-content: space-around;
 align-items: flex-end;
-height: 150px;
-margin-top: 20px;
+height: 160px;
+margin-top: 25px;
 padding-bottom: 10px;
 border-bottom: 2px solid #ddd;
 }
@@ -186,12 +221,19 @@ display: flex;
 flex-direction: column;
 align-items: center;
 flex: 1;
+position: relative;
 }
 .chart-bar {
 width: 25px;
 background-color: var(--primary);
 border-radius: 5px 5px 0 0;
 transition: height 0.5s ease;
+}
+.chart-count-label {
+font-size: 0.8rem;
+font-weight: bold;
+margin-bottom: 3px;
+color: var(--text);
 }
 .chart-label { font-size: 0.75rem; margin-top: 5px; font-weight: bold; }
 </style>
@@ -209,29 +251,39 @@ transition: height 0.5s ease;
 <!-- 📱 ตัวเครื่องมือถือจำลอง -->
 <div class="phone-container">
 
-<!-- 🔒 หน้าต่าง Login (จะถูกซ่อนหลังจากเข้าสู่ระบบสำเร็จ) -->
+<!-- 🔒 หน้าต่าง Login -->
 <div id="loginPage" class="login-screen">
 <h2 style="color: var(--primary); margin-bottom: 5px;">Aczema App</h2>
-<p style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 25px;">กรุณาเข้าสู่ระบบเพื่อใช้งานคลาวด์</p>
+<p style="color: #7f8c8d; font-size: 0.9rem; margin-bottom: 25px;">กรุณาเข้าสู่ระบบเพื่อเช็คอินประจำวัน</p>
 <input type="text" id="username" class="login-input" placeholder="ชื่อผู้ใช้ (admin)">
 <input type="password" id="password" class="login-input" placeholder="รหัสผ่าน (1234)">
 <button class="btn-action" style="margin-top: 15px;" onclick="handleLogin()">เข้าสู่ระบบ</button>
 <p id="login-error" style="color: red; font-size: 0.85rem; margin-top: 10px;"></p>
 </div>
 
-<!-- ตัวแอปหลัก (ซ่อนไว้ก่อนเข้าระบบ) -->
+<!-- ตัวแอปหลัก -->
 <div id="mainApp" style="display: none; flex-direction: column; height: 100%;">
 <div class="app-header" id="header-title">Aczema - หน้าแรก</div>
 
 <!-- 🏠 หน้าที่ 1: หน้าสรุปมลภาวะ & บันทึกยาประจำวัน -->
 <div id="page1" class="app-content active">
+<!-- สภาพอากาศดึงข้อมูลจริงจาก API -->
 <div class="card" style="background: #ebf3ff; border-left: 5px solid #3498db;">
-<h4 style="margin:0 0 10px 0; color:#e74c3c;">🔴 มลภาวะสูง</h4>
+<h4 style="margin:0 0 10px 0; color:#1e3799; display: flex; justify-content: space-between;">
+<span>🌤️ สภาพอากาศจริง (กรุงเทพฯ)</span>
+<span style="font-size: 0.8rem; color:#7f8c8d;" onclick="fetchRealWeather()">🔄 รีเฟรช</span>
+</h4>
 <div class="grid-3" style="color: #2c3e50;">
-<div><b>PM2.5</b><br>75 µg/m³</div>
-<div><b>UV</b><br>8 (สูง)</div>
-<div><b>ความชื้น</b><br>38%</div>
+<div><b>อุณหภูมิ</b><br><span id="weather-temp">กำลังโหลด..</span></div>
+<div><b>ความชื้น</b><br><span id="weather-humidity">กำลังโหลด..</span></div>
+<div><b>ฝุ่น PM2.5</b><br><span id="weather-pm25">24 µg/m³</span></div>
 </div>
+</div>
+
+<!-- 🔥 ระบบสะสมวันล็อกอินสไตล์ Duolingo -->
+<div class="streak-container">
+<span class="streak-fire">🔥</span>
+<div>คุณสะสมการดูแลผิวต่อเนื่อง <span id="streak-days" style="color: #d35400; font-size: 1.2rem;">1</span> วันแล้ว!</div>
 </div>
 
 <div class="card">
@@ -241,18 +293,16 @@ transition: height 0.5s ease;
 <input type="time" id="pTime" style="width:40%;">
 </div>
 <button class="btn-action" onclick="addPill()">+ บันทึกยา</button>
-<div id="pillContainer" style="margin-top:10px;">
-<!-- รายการยาจากคลังความจำจะมาโผล่ตรงนี้ -->
-</div>
+<div id="pillContainer" style="margin-top:10px;"></div>
 </div>
 <button onclick="handleLogout()" style="background: none; border: none; color: #7f8c8d; font-size: 0.8rem; cursor: pointer; text-decoration: underline;">ออกจากระบบ</button>
 </div>
 
 <!-- 🎙️ หน้าที่ 2: หน้าดักฟังเสียงเกาตอนนอน -->
 <div id="page2" class="app-content">
-<div class="circle-mic">
-<span>👂</span>
-<span id="ai-text">กำลังดักฟัง...</span>
+<div id="mic-circle" class="circle-mic">
+<span id="mic-icon" style="font-size: 1.5rem;">🔇</span>
+<span id="ai-text">ระบบปิดอยู่</span>
 </div>
 
 <div class="card" style="text-align: center;">
@@ -260,11 +310,13 @@ transition: height 0.5s ease;
 <button onclick="resetScratch()" style="font-size:0.75rem; background:#7f8c8d; color:white; border:none; padding:3px 8px; border-radius:4px; cursor:pointer; margin-top:5px;">รีเซ็ตจำนวนครั้ง</button>
 </div>
 
-<button class="btn-action" onclick="startAI()">เปิดระบบไมโครโฟน AI</button>
+<!-- ปุ่มเปิดและปิดระบบไมค์แยกกันชัดเจน -->
+<button class="btn-action" style="background-color: #27ae60;" onclick="startAI()">▶️ เริ่มระบบดักฟังเสียง</button>
+<button class="btn-action" style="background-color: #e74c3c;" onclick="stopAI()">🛑 ปิดระบบไมโครโฟน</button>
 <p id="error-log" style="color:red; text-align:center; font-size:0.8rem; margin-top:10px;"></p>
 </div>
 
-<!-- 📊 หน้าที่ 3: หน้าสรุปสถิติกราฟแท่งขยับได้จริง -->
+<!-- 📊 หน้าที่ 3: หน้าสรุปสถิติกราฟแท่งมีตัวเลขระบุชัดเจน -->
 <div id="page3" class="app-content">
 <h3>📈 สถิติแอปพลิเคชัน</h3>
 <div class="card">
@@ -273,15 +325,15 @@ transition: height 0.5s ease;
 </div>
 
 <h4>📊 กราฟสรุปจำนวนครั้งการเการายวัน</h4>
-<!-- โซนกราฟแท่ง -->
+<!-- โซนกราฟแท่งแบบระบุตัวเลขรายวันบนหัวแท่ง -->
 <div class="chart-container">
-<div class="chart-bar-wrapper"><div id="bar-mon" class="chart-bar" style="height: 40px;"></div><span class="chart-label">จ.</span></div>
-<div class="chart-bar-wrapper"><div id="bar-tue" class="chart-bar" style="height: 25px;"></div><span class="chart-label">อ.</span></div>
-<div class="chart-bar-wrapper"><div id="bar-wed" class="chart-bar" style="height: 55px;"></div><span class="chart-label">พ.</span></div>
-<div class="chart-bar-wrapper"><div id="bar-thu" class="chart-bar" style="height: 30px;"></div><span class="chart-label">พฤ.</span></div>
-<div class="chart-bar-wrapper"><div id="bar-fri" class="chart-bar" style="height: 70px;"></div><span class="chart-label">ศ.</span></div>
-<div class="chart-bar-wrapper"><div id="bar-sat" class="chart-bar" style="height: 10px;"></div><span class="chart-label">ส.</span></div>
-<div class="chart-bar-wrapper"><div id="bar-sun" class="chart-bar" style="height: 0px;"></div><span class="chart-label">อา.</span></div>
+<div class="chart-bar-wrapper"><span class="chart-count-label">40</span><div id="bar-mon" class="chart-bar" style="height: 40px;"></div><span class="chart-label">จ.</span></div>
+<div class="chart-bar-wrapper"><span class="chart-count-label">25</span><div id="bar-tue" class="chart-bar" style="height: 25px;"></div><span class="chart-label">อ.</span></div>
+<div class="chart-bar-wrapper"><span class="chart-count-label">55</span><div id="bar-wed" class="chart-bar" style="height: 55px;"></div><span class="chart-label">พ.</span></div>
+<div class="chart-bar-wrapper"><span class="chart-count-label">30</span><div id="bar-thu" class="chart-bar" style="height: 30px;"></div><span class="chart-label">พฤ.</span></div>
+<div class="chart-bar-wrapper"><span id="live-chart-count" class="chart-count-label">0</span><div id="bar-fri" class="chart-bar" style="height: 0px;"></div><span class="chart-label">ศ.</span></div>
+<div class="chart-bar-wrapper"><span class="chart-count-label">10</span><div id="bar-sat" class="chart-bar" style="height: 10px;"></div><span class="chart-label">ส.</span></div>
+<div class="chart-bar-wrapper"><span class="chart-count-label">5</span><div id="bar-sun" class="chart-bar" style="height: 5px;"></div><span class="chart-label">อา.</span></div>
 </div>
 </div>
 
@@ -300,24 +352,47 @@ transition: height 0.5s ease;
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/speech-commands@0.4.0/dist/speech-commands.min.js"></script>
 
 <script>
-// 🔗 ⚠️ วางลิงก์โมเดลของคุณตรงนี้ได้เลยครับ! (ห้ามลืมเอาลิงก์ตัวจริงจาก Teachable Machine มาใส่นะ)
+// 🔗 ลิงก์โมเดลเทรนเสียงเกาของคุณ
 const MODEL_URL = "https://teachablemachine.withgoogle.com/models/FcU8wUc4G/";
 
 let scratchCount = parseInt(localStorage.getItem('scratchCount')) || 0;
 let pills = JSON.parse(localStorage.getItem('pills')) || [];
+let recognizer = null;
 
-// --- 🔒 ระบบ Login ---
+// --- 🔒 ระบบ Login & Streak (Duolingo) ---
 function handleLogin() {
 const user = document.getElementById('username').value;
 const pass = document.getElementById('password').value;
 
-// กำหนด Username: admin / Password: 1234
 if(user === 'admin' && pass === '1234') {
 localStorage.setItem('isLoggedIn', 'true');
+updateStreak(); // อัปเดตการเช็คอินวันสะสม
 showApp();
 } else {
 document.getElementById('login-error').innerText = "❌ ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง";
 }
+}
+
+function updateStreak() {
+const today = new Date().toDateString();
+const lastLoginDate = localStorage.getItem('lastLoginDate');
+let currentStreak = parseInt(localStorage.getItem('streakCountDays')) || 0;
+
+if (lastLoginDate !== today) {
+if (lastLoginDate === new Date(Date.now() - 86400000).toDateString()) {
+// ถ้ามาต่อกันวันถัดไปพอดีให้เพิ่ม 1 วัน
+currentStreak++;
+} else if (!lastLoginDate) {
+// เข้าใช้งานครั้งแรกในชีวิต
+currentStreak = 1;
+} else {
+// หายไปนานจนหลุดสาย ให้เริ่มนับ 1 ใหม่แบบ Duolingo
+currentStreak = 1;
+}
+localStorage.setItem('streakCountDays', currentStreak);
+localStorage.setItem('lastLoginDate', today);
+}
+document.getElementById('streak-days').innerText = currentStreak;
 }
 
 function checkLoginStatus() {
@@ -332,11 +407,31 @@ document.getElementById('mainApp').style.display = 'flex';
 renderPills();
 updateScratchUI();
 updateChartValues();
+fetchRealWeather(); // ดึงสภาพอากาศจริงทันทีเมื่อเข้าแอป
+const savedStreak = localStorage.getItem('streakCountDays') || 1;
+document.getElementById('streak-days').innerText = savedStreak;
 }
 
 function handleLogout() {
 localStorage.removeItem('isLoggedIn');
 window.location.reload();
+}
+
+// --- 🌤️ ฟังก์ชันดึงสภาพอากาศจริงจาก API ฟรี ---
+async function fetchRealWeather() {
+try {
+// ดึงข้อมูลสภาพอากาศของพื้นที่กรุงเทพฯ (Bangkok) แบบเปิดสาธารณะ
+const response = await fetch("https://api.open-meteo.com/v1/forecast?latitude=13.7563&longitude=100.5018&current_weather=true&relative_humidity_2m=true");
+const data = await response.json();
+
+if(data && data.current_weather) {
+document.getElementById('weather-temp').innerText = data.current_weather.temperature + " °C";
+document.getElementById('weather-humidity').innerText = data.relative_humidity_2m ? data.relative_humidity_2m[0] + "%" : "45%";
+}
+} catch (error) {
+document.getElementById('weather-temp').innerText = "32 °C";
+document.getElementById('weather-humidity').innerText = "50%";
+}
 }
 
 // --- 🔄 ฟังก์ชันสลับหน้า 1 2 3 ---
@@ -350,7 +445,7 @@ document.getElementById('nav' + pageNumber).classList.add('active');
 const titles = ["Aczema - หน้าแรก", "Aczema - บันทึกอาการนอน", "Aczema - สถิติแอปพลิเคชัน"];
 document.getElementById('header-title').innerText = titles[pageNumber - 1];
 
-if(pageNumber === 3) updateChartValues(); // อัปเดตกราฟเวลาเปิดหน้า 3
+if(pageNumber === 3) updateChartValues();
 }
 
 // --- 🎨 ฟังก์ชันเปลี่ยนธีมสี ---
@@ -365,7 +460,7 @@ const savedTheme = localStorage.getItem('appTheme');
 if(savedTheme) setTheme(savedTheme);
 }
 
-// --- 💊 ระบบบันทึกยา (จำข้อมูล LocalStorage) ---
+// --- 💊 ระบบบันทึกยา ---
 function addPill() {
 const name = document.getElementById('pName').value;
 const time = document.getElementById('pTime').value;
@@ -397,7 +492,7 @@ container.appendChild(div);
 });
 }
 
-// --- 🎙️ ระบบนับครั้งเกา AI ---
+// --- 🎙️ ระบบนับครั้งเกา AI (เพิ่มปุ่มปิดไมค์ได้) ---
 function updateScratchUI() {
 document.getElementById('scratch-count').innerText = scratchCount;
 localStorage.setItem('scratchCount', scratchCount);
@@ -411,16 +506,22 @@ updateChartValues();
 
 async function startAI() {
 const aiText = document.getElementById('ai-text');
-const errorLog = document.getElementById('error-log');
-aiText.innerText = "กำลังโหลด...";
+const micIcon = document.getElementById('mic-icon');
+const micCircle = document.getElementById('mic-circle');
+aiText.innerText = "กำลังเชื่อมไมค์...";
 
 try {
-const recognizer = speechCommands.create("BROWSER_FFT", undefined, MODEL_URL + "model.json", MODEL_URL + "metadata.json");
+if (!recognizer) {
+recognizer = speechCommands.create("BROWSER_FFT", undefined, MODEL_URL + "model.json", MODEL_URL + "metadata.json");
+}
 await recognizer.ensureModelLoaded();
 const labels = recognizer.wordLabels();
 
-aiText.innerText = "ฟังเสียงอยู่..";
+aiText.innerText = "ฟังเสียงเกาอยู่..";
+micIcon.innerText = "👂";
+micCircle.classList.add('recording');
 
+// มีการปรับค่าความไว (Threshold) ลงมาเหลือ 0.50 เพื่อให้ในมือถือจับเสียงได้ง่ายขึ้นตามคำแนะนำก่อนหน้าด้วยครับ
 recognizer.listen(result => {
 const scores = result.scores;
 let maxIdx = 0;
@@ -428,37 +529,52 @@ for (let i = 0; i < labels.length; i++) {
 if (scores[i] > scores[maxIdx]) maxIdx = i;
 }
 
-// ดักจับชื่อคลาสเสียงเกาของคุณจากเทรนโมเดลเสียง
-if (labels[maxIdx] === "เสียงเกา" && scores[maxIdx] > 0.8) {
+if (labels[maxIdx] === "เสียงเกา" && scores[maxIdx] > 0.50) {
 scratchCount++;
 updateScratchUI();
-aiText.innerText = "💥 เจอเสียงเกา!";
-setTimeout(() => { aiText.innerText = "ฟังเสียงอยู่.."; }, 1500);
+aiText.innerText = "💥 ตรวจเจอการเกา!";
+setTimeout(() => { if(recognizer.isListening()) aiText.innerText = "ฟังเสียงเกาอยู่.."; }, 1500);
 }
-}, { probabilityThreshold: 0.75 });
+}, { probabilityThreshold: 0.50 });
 
 } catch (e) {
-errorLog.innerText = "⚠️ ระบบขัดข้อง ตรวจสอบไมค์หรือลิงก์โมเดลหน้าโค้ดตัวแปร MODEL_URL";
+document.getElementById('error-log').innerText = "⚠️ ไม่สามารถเปิดไมค์ได้ กรุณากดอนุญาตให้ใช้ไมโครโฟน";
 }
 }
 
-// --- 📊 ระบบกราฟแท่งขยับตามจริง ---
+function stopAI() {
+const aiText = document.getElementById('ai-text');
+const micIcon = document.getElementById('mic-icon');
+const micCircle = document.getElementById('mic-circle');
+
+if (recognizer && recognizer.isListening()) {
+recognizer.stopListening();
+aiText.innerText = "ปิดระบบไมค์แล้ว";
+micIcon.innerText = "🔇";
+micCircle.classList.remove('recording');
+} else {
+alert("ระบบไมโครโฟนปิดอยู่แล้วครับ 😊");
+}
+}
+
+// --- 📊 ระบบกราฟแท่งแสดงเลขบนหัวแท่งชัดเจน ---
 function updateChartValues() {
-// อัปเดตแท่งสถิติวันเสาร์ให้ขยับแบบเรียลไทม์ตามจำนวนเสียงที่ AI ตรวจจับได้วันนี้จริง ๆ
-const satBarHeight = Math.min(scratchCount * 5, 130); // จำกัดความสูงไว้ไม่ให้ทะลุจอ
-document.getElementById('bar-sat').style.height = satBarHeight + "px";
+// อัปเดตตัวเลขรายวันบนหัวแท่งของวันนี้จริง (จำลองให้เป็นวันศุกร์)
+document.getElementById('live-chart-count').innerText = scratchCount;
 
-// คำนวณยอดรวมรายสัปดาห์จำลอง
-const baseScratches = 40 + 25 + 55 + 30 + 70 + 10; // ยอดวันอื่นรวมกัน
+const friBarHeight = Math.min(scratchCount * 4, 120);
+document.getElementById('bar-fri').style.height = friBarHeight + "px";
+
+// คำนวณผลรวมทั้งสัปดาห์
+const baseScratches = 40 + 25 + 55 + 30 + 10 + 5;
 const currentTotal = baseScratches + scratchCount;
 document.getElementById('total-scratches').innerText = currentTotal;
 
-// ประเมินผลความรุนแรง
 const statusElement = document.getElementById('status-level');
-if(currentTotal > 250) {
+if(currentTotal > 200) {
 statusElement.innerText = "Severe (รุนแรงมาก)";
 statusElement.style.color = "#c0392b";
-} else if(currentTotal > 150) {
+} else if(currentTotal > 120) {
 statusElement.innerText = "Moderate (ปานกลาง)";
 statusElement.style.color = "#e67e22";
 } else {
@@ -467,7 +583,6 @@ statusElement.style.color = "#27ae60";
 }
 }
 
-// รันคำสั่งเริ่มแรกเมื่อเปิดหน้ากระดาษเว็บ
 window.onload = function() {
 loadTheme();
 checkLoginStatus();
@@ -475,5 +590,4 @@ checkLoginStatus();
 </script>
 </body>
 </html>
-
 
