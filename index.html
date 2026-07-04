@@ -3,313 +3,274 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Nocturnal Scratch Tracker App</title>
-<!-- นำเข้าไลบรารีสร้างกราฟ Chart.js -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<title>ระบบบันทึกยาและตรวจจับเสียง</title>
 <style>
-/* 🎨 สไตล์หลักและระบบเปลี่ยนธีม (Light/Dark Mode) */
+/* 🎨 ตั้งค่าธีมสีพื้นฐาน (Default Theme: สีฟ้า) */
 :root {
---bg-color: #f4f6f9;
---card-bg: #ffffff;
+--primary-color: #3498db;
+--background-color: #f4f6f9;
+--card-color: #ffffff;
 --text-color: #333333;
---primary-color: #0056b3;
---secondary-color: #28a745;
 }
-[data-theme="dark"] {
---bg-color: #121212;
---card-bg: #1e1e1e;
---text-color: #f5f5f5;
---primary-color: #3792ff;
---secondary-color: #4cd137;
+
+/* 🟢 เปลี่ยนสีตามคลาสธีม */
+.theme-green {
+--primary-color: #2ecc71;
+--background-color: #e8f8f5;
 }
-body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-color); color: var(--text-color); margin: 0; padding: 20px; transition: 0.3s; padding-bottom: 80px; }
-.screen { display: none; max-width: 450px; margin: 0 auto; background: var(--card-bg); padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-.active { display: block; }
-input, select, button { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; font-size: 16px; }
-button { background-color: var(--primary-color); color: white; border: none; font-weight: bold; cursor: pointer; }
-.knowledge-box { background: rgba(0,86,179,0.1); padding: 15px; border-radius: 8px; font-size: 14px; margin-top: 15px; }
-.checkbox-group { display: flex; gap: 10px; margin: 10px 0; }
-.theme-btn { background: #6c757d; float: right; width: auto; font-size: 12px; padding: 5px 10px; margin: 0; }
+.theme-purple {
+--primary-color: #9b59b6;
+--background-color: #f4ecf7;
+}
+.theme-dark {
+--primary-color: #e67e22;
+--background-color: #2c3e50;
+--card-color: #34495e;
+--text-color: #ffffff;
+}
 
-/* 📱 แถบเมนูด้านล่างสุด (Bottom Navigation) */
-.bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card-bg); display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid #ccc; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); z-index: 100; }
-.nav-item { background: none; color: var(--text-color); border: none; padding: 5px; margin: 0; font-size: 12px; width: auto; font-weight: normal; }
-.nav-item.active-nav { color: var(--primary-color); font-weight: bold; }
+body {
+font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+background-color: var(--background-color);
+color: var(--text-color);
+transition: all 0.3s ease;
+margin: 0;
+padding: 20px;
+}
 
-/* 🎙️ สไตล์หน้าบันทึกเสียง */
-.record-box { text-align: center; padding: 30px 10px; border: 2px dashed #ccc; border-radius: 12px; margin: 20px 0; }
-.counter-display { font-size: 48px; font-weight: bold; color: var(--primary-color); margin: 15px 0; }
-.status-dot { inline-block; width: 12px; height: 12px; background-color: #ccc; border-radius: 50%; display: inline-block; margin-right: 5px; }
-.recording .status-dot { background-color: red; animation: blink 1s infinite; }
+.container {
+max-width: 800px;
+margin: 0 auto;
+}
 
-/* 📊 สไตล์หน้าสรุปสถิติ */
-.severity-badge { display: inline-block; padding: 5px 15px; border-radius: 20px; font-weight: bold; color: white; margin-top: 5px; }
-.sev-low { background-color: #28a745; }
-.sev-mid { background-color: #ffc107; color: #333; }
-.sev-high { background-color: #dc3545; }
+.card {
+background-color: var(--card-color);
+border-radius: 12px;
+padding: 20px;
+margin-bottom: 20px;
+box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
 
-@keyframes blink { 50% { opacity: 0; } }
+h2 { margin-top: 0; color: var(--primary-color); }
+
+/* 🔘 ปุ่มและอินพุต */
+button {
+background-color: var(--primary-color);
+color: white;
+border: none;
+padding: 10px 15px;
+border-radius: 6px;
+cursor: pointer;
+font-weight: bold;
+}
+button:hover { opacity: 0.9; }
+
+input, select {
+padding: 10px;
+border: 1px solid #ddd;
+border-radius: 6px;
+margin-right: 10px;
+}
+
+/* 💊 สไตล์ส่วนบันทึกยา */
+.med-list { list-style: none; padding: 0; }
+.med-item {
+display: flex;
+justify-content: space-between;
+background: rgba(0,0,0,0.05);
+padding: 10px;
+margin: 5px 0;
+border-radius: 6px;
+}
+
+/* 🎛️ โซนเลือกธีม */
+.theme-selector {
+display: flex;
+gap: 10px;
+margin-bottom: 20px;
+}
+.theme-btn { width: 30px; height: 30px; border-radius: 50%; border: 2px solid white; cursor: pointer; }
 </style>
 </head>
 <body>
 
-<!-- 1️⃣ SCREEN 1: LOGIN -->
-<div id="loginScreen" class="screen active">
-<h2>เข้าสู่ระบบ (Login)</h2>
-<input type="text" id="username" placeholder="ชื่อผู้ใช้ (admin)">
-<input type="password" id="password" placeholder="รหัสผ่าน (1234)">
-<button onclick="login()">เข้าสู่ระบบ</button>
-</div>
+<div class="container">
 
-<!-- 2️⃣ SCREEN 2: USER PROFILE -->
-<div id="profileScreen" class="screen">
-<h2>ข้อมูลผู้ใช้งาน</h2>
-<input type="text" id="name" placeholder="ชื่อ-นามสกุล">
-<input type="number" id="age" placeholder="อายุ (ปี)">
-<input type="number" id="weight" placeholder="น้ำหนัก (กก.)">
-<input type="number" id="height" placeholder="ส่วนสูง (ซม.)">
-
-<label>ประเภทโรคผิวหนังที่เป็น:</label>
-<div class="checkbox-group">
-<input type="checkbox" id="eczema" value="ผื่นภูมิแพ้ผิวหนัง"> <label for="eczema">ผื่นภูมิแพ้ผิวหนัง</label>
-</div>
-<div class="checkbox-group">
-<input type="checkbox" id="psoriasis" value="สะเก็ดเงิน"> <label for="psoriasis">สะเก็ดเงิน</label>
-</div>
-
-<button onclick="saveProfile()">บันทึกข้อมูลและเข้าสู่แอป</button>
-</div>
-
-<!-- 3️⃣ SCREEN 3: DASHBOARD / HOME (หน้า 1 เดิม) -->
-<div id="dashboardScreen" class="screen">
-<button class="theme-btn" onclick="toggleTheme()">เปลี่ยนธีม 🌓</button>
-<h2>หน้าหลัก (Home)</h2>
-<p>สวัสดีคุณ: <span id="display_name" style="font-weight:bold;">-</span></p>
-<p>โรคของคุณ: <span id="display_disease" style="color:var(--primary-color); font-weight:bold;">-</span></p>
-<hr>
-
-<div class="knowledge-box">
-<h4>💡 อาการและวิธีบรรเทาโรคผิวหนัง</h4>
-<p><strong>อาการหลัก:</strong> ผิวแห้งเป็นขุย คันยุบยิบอย่างรุนแรงโดยเฉพาะเวลาค่ำคืนหรือช่วงนอนหลับ</p>
-<p><strong>วิธีบรรเทา:</strong> ชโลมมอยส์เจอไรเซอร์หนาๆ ทันทีหลังอาบน้ำเสร็จภายใน 3 นาที ปรับอุณหภูมิห้องนอนไม่ให้เย็นจัดเกินไปเพื่อป้องกันผิวแห้ง และหลีกเลี่ยงการเกาโดยตรง</p>
+<!-- 🎨 ส่วนที่ 1: เลือกธีมสี -->
+<div class="card">
+<h3>เลือกธีมสีแอป</h3>
+<div class="theme-selector">
+<div class="theme-btn" style="background: #3498db;" onclick="changeTheme('blue')"></div>
+<div class="theme-btn" style="background: #2ecc71;" onclick="changeTheme('green')"></div>
+<div class="theme-btn" style="background: #9b59b6;" onclick="changeTheme('purple')"></div>
+<div class="theme-btn" style="background: #2c3e50;" onclick="changeTheme('dark')"></div>
 </div>
 </div>
 
-<!-- 4️⃣ SCREEN 4: SLEEP AUDIO TRACKER (หน้า 2 ใหม่ จับเสียงเกา) -->
-<div id="sleepScreen" class="screen">
-<h2>ระบบดักจับเสียงเกาตอนนอน</h2>
-<p>วางโทรศัพท์ไว้ข้างที่นอนเพื่อเปิดไมค์วิเคราะห์เสียงเกาอัจฉริยะ</p>
-
-<div id="recordBox" class="record-box">
-<div id="statusIndicator"><span class="status-dot"></span> <span id="statusText">ระบบปิดอยู่</span></div>
-<div class="counter-display"><span id="scratchCount">0</span> ครั้ง</div>
-<p style="font-size: 14px; color: #777;">จำนวนการตรวจพบเสียงเกาในคืนนี้</p>
+<!-- 💊 ส่วนที่ 2: บันทึกยาประจำวัน -->
+<div class="card">
+<h2>💊 บันทึกการทานยาประจำวัน</h2>
+<div style="display: flex; margin-bottom: 15px;">
+<input type="text" id="medName" placeholder="ชื่อยา เช่น ยาแก้แพ้" style="flex: 2;">
+<input type="time" id="medTime" style="flex: 1;">
+<button onclick="addMedicine()">+ เพิ่มบันทึก</button>
+</div>
+<ul id="medicineList" class="med-list">
+<!-- รายการยาจะโผล่ตรงนี้ -->
+</ul>
 </div>
 
-<button id="btnAudio" onclick="toggleAudioTracking()" style="background-color: var(--secondary-color);">시작 เริ่มตรวจจับเสียงเกา</button>
-<p style="font-size: 12px; text-align: center; color: #888; margin-top: 5px;">*หมายเหตุ: เป็นระบบจำลองการประมวลผลเสียงเพื่อทดสอบหน้าต่างแอป</p>
+<!-- 🎙️ ส่วนที่ 3: ตรวจจับเสียงจาก Teachable Machine -->
+<div class="card">
+<h2>🎙️ ระบบตรวจจับเสียง AI</h2>
+<button type="button" onclick="init()">เริ่มเปิดไมค์ตรวจจับเสียง</button>
+<div id="label-container" style="margin-top: 15px; font-size: 1.2rem; font-weight: bold;"></div>
 </div>
 
-<!-- 5️⃣ SCREEN 5: HISTORY GRAPH & SEVERITY (หน้า 3 สรุปรายสัปดาห์) -->
-<div id="historyScreen" class="screen">
-<h2>สรุปผลประจำสัปดาห์</h2>
-
-<!-- ส่วนจำลองระดับความรุนแรง -->
-<div class="knowledge-box" style="text-align: center;">
-<h4 style="margin: 0;">📊 ระดับความรุนแรงสัปดาห์นี้</h4>
-<div id="severityBadge" class="severity-badge sev-mid">ปานกลาง (Moderate)</div>
-<p style="font-size: 13px; margin: 8px 0 0 0;">เฉลี่ยเกา <b>32 ครั้งต่อคืน</b> ควรทาครีมเพิ่มก่อนนอน</p>
 </div>
 
-<div style="margin-top: 20px; position: relative; height:280px; width:100%">
-<canvas id="weeklyChart"></canvas>
-</div>
-</div>
+<!-- นำเข้าคลังโค้ด TensorFlow.js สำหรับเล่นเสียง -->
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/speech-commands@0.4.0/dist/speech-commands.min.js"></script>
 
-<!-- 📱 แถบเนวิเกชั่นด้านล่าง (จะแสดงหลังจาก Login แล้ว) -->
-<nav id="mainNav" class="bottom-nav" style="display: none;">
-<button class="nav-item active-nav" id="nav-home" onclick="changeTab('dashboardScreen', 'nav-home')">🏠<br>หน้าหลัก</button>
-<button class="nav-item" id="nav-sleep" onclick="changeTab('sleepScreen', 'nav-sleep')">🌙<br>ตรวจจับเสียง</button>
-<button class="nav-item" id="nav-history" onclick="changeTab('historyScreen', 'nav-history')">📊<br>สรุปสถิติ</button>
-</nav>
-
-<!-- 📜 ระบบการทำงานเบื้องหลัง (JavaScript) -->
 <script>
-let isRecording = false;
-let scratchCounter = 0;
-let scratchInterval;
-let weeklyChartInstance = null;
+// 🔗 ⚠️ อย่าลืมเอาลิงก์จาก Teachable Machine ของคุณมาใส่ตรงนี้นะครับ!
+const URL = "https://teachablemachine.withgoogle.com/models/<div>Teachable Machine Audio Model</div>
+<button type="button" onclick="init()">Start</button>
+<div id="label-container"></div>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/speech-commands@0.4.0/dist/speech-commands.min.js"></script>
 
-// 1. ระบบ Login
-function login() {
-const user = document.getElementById('username').value;
-const pass = document.getElementById('password').value;
-if(user === "admin" && pass === "1234") {
-navigate('loginScreen', 'profileScreen');
-} else {
-alert('ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง! (ใช้ admin และ 1234)');
+<script type="text/javascript">
+    // more documentation available at
+    // https://github.com/tensorflow/tfjs-models/tree/master/speech-commands
+
+    // the link to your model provided by Teachable Machine export panel
+    const URL = "./my_model/";
+
+    async function createModel() {
+        const checkpointURL = URL + "model.json"; // model topology
+        const metadataURL = URL + "metadata.json"; // model metadata
+
+        const recognizer = speechCommands.create(
+            "BROWSER_FFT", // fourier transform type, not useful to change
+            undefined, // speech commands vocabulary feature, not useful for your models
+            checkpointURL,
+            metadataURL);
+
+        // check that model and metadata are loaded via HTTPS requests.
+        await recognizer.ensureModelLoaded();
+
+        return recognizer;
+    }
+
+    async function init() {
+        const recognizer = await createModel();
+        const classLabels = recognizer.wordLabels(); // get class labels
+        const labelContainer = document.getElementById("label-container");
+        for (let i = 0; i < classLabels.length; i++) {
+            labelContainer.appendChild(document.createElement("div"));
+        }
+
+        // listen() takes two arguments:
+        // 1. A callback function that is invoked anytime a word is recognized.
+        // 2. A configuration object with adjustable fields
+        recognizer.listen(result => {
+            const scores = result.scores; // probability of prediction for each class
+            // render the probability scores per class
+            for (let i = 0; i < classLabels.length; i++) {
+                const classPrediction = classLabels[i] + ": " + result.scores[i].toFixed(2);
+                labelContainer.childNodes[i].innerHTML = classPrediction;
+            }
+        }, {
+            includeSpectrogram: true, // in case listen should return result.spectrogram
+            probabilityThreshold: 0.75,
+            invokeCallbackOnNoiseAndUnknown: true,
+            overlapFactor: 0.50 // probably want between 0.5 and 0.75. More info in README
+        });
+
+        // Stop the recognition in 5 seconds.
+        // setTimeout(() => recognizer.stopListening(), 5000);
+    }
+</script>
+";
+
+// --- 🎨 ระบบเปลี่ยนธีมสี ---
+function changeTheme(theme) {
+document.body.className = ''; // ล้างค่าเก่า
+if (theme !== 'blue') {
+document.body.classList.add('theme-' + theme);
 }
 }
 
-// 2. ระบบบันทึกข้อมูลผู้ใช้
-function saveProfile() {
-const name = document.getElementById('name').value || "ผู้ใช้งานทั่วไป";
-const hasEczema = document.getElementById('eczema').checked;
-const hasPsoriasis = document.getElementById('psoriasis').checked;
+// --- 💊 ระบบบันทึกยาประจำวัน ---
+function addMedicine() {
+const name = document.getElementById('medName').value;
+const time = document.getElementById('medTime').value;
 
-let diseaseResult = "โรคผิวหนังทั่วไป";
-if (hasEczema && hasPsoriasis) { diseaseResult = "ผื่นภูมิแพ้ผิวหนัง และ สะเก็ดเงิน"; }
-else if (hasEczema) { diseaseResult = "ผื่นภูมิแพ้ผิวหนัง"; }
-else if (hasPsoriasis) { diseaseResult = "สะเก็ดเงิน"; }
-
-document.getElementById('display_name').innerText = name;
-document.getElementById('display_disease').innerText = diseaseResult;
-
-// แสดงแถบเมนูด้านล่าง และย้ายไปหน้าหลัก
-document.getElementById('mainNav').style.display = 'flex';
-navigate('profileScreen', 'dashboardScreen');
-initChart(); // เรียกโหลดกราฟรอไว้
+if (!name || !time) {
+alert('กรุณากรอกชื่อยาและเวลาให้ครบถ้วนครับ');
+return;
 }
 
-// 3. ฟังก์ชันสลับหน้าจอพื้นฐาน
-function navigate(fromId, toId) {
-document.getElementById(fromId).classList.remove('active');
-document.getElementById(toId).classList.add('active');
+const li = document.createElement('li');
+li.className = 'med-item';
+li.innerHTML = `<span><strong>${name}</strong> - เวลา ${time} น.</span>
+<button onclick="this.parentElement.remove()" style="background:#e74c3c; padding:2px 8px;">ลบ</button>`;
+
+document.getElementById('medicineList').appendChild(li);
+
+// ล้างค่าในช่องกรอกหลังกดเพิ่ม
+document.getElementById('medName').value = '';
+document.getElementById('medTime').value = '';
 }
 
-// 4. แถบเมนูด้านล่าง สลับหน้าไปมา
-function changeTab(targetScreenId, navItemId) {
-// ซ่อนทุกหน้าหลักยกเว้นหน้าล็อกอิน/โปรไฟล์
-const screens = ['dashboardScreen', 'sleepScreen', 'historyScreen'];
-screens.forEach(scr => document.getElementById(scr).classList.remove('active'));
+// --- 🎙️ โค้ดเปิดไมค์ AI ตรวจจับเสียง (Teachable Machine) ---
+async function createModel() {
+const checkpointURL = URL + "model.json";
+const metadataURL = URL + "metadata.json";
 
-// เปิดหน้าจำเพาะ
-document.getElementById(targetScreenId).classList.add('active');
+const recognizer = speechCommands.create(
+"BROWSER_FFT",
+undefined,
+checkpointURL,
+metadataURL);
 
-// เปลี่ยนสีปุ่มเมนูที่เลือก
-const navItems = ['nav-home', 'nav-sleep', 'nav-history'];
-navItems.forEach(item => document.getElementById(item).classList.remove('active-nav'));
-document.getElementById(navItemId).classList.add('active-nav');
-
-// รีเฟรชตัวกราฟเวลาเปลี่ยนมาหน้าสถิติเพื่อความสวยงาม
-if(targetScreenId === 'historyScreen') {
-setTimeout(() => { if(weeklyChartInstance) weeklyChartInstance.update(); }, 100);
-}
+await recognizer.ensureModelLoaded();
+return recognizer;
 }
 
-// 5. หน้าตรวจจับเสียงเกาตอนนอน (ระบบจำลองเสียงอัจฉริยะ)
-function toggleAudioTracking() {
-const rBox = document.getElementById('recordBox');
-const statusT = document.getElementById('statusText');
-const btn = document.getElementById('btnAudio');
+async function init() {
+const recognizer = await createModel();
+const classLabels = recognizer.wordLabels();
+const labelContainer = document.getElementById("label-container");
 
-if(!isRecording) {
-// เปลี่ยนสถานะเป็นเริ่มงาน
-isRecording = true;
-rBox.classList.add('recording');
-statusT.innerText = "กำลังฟังและตรวจจับเสียงเกา...";
-btn.innerText = "🛑 หยุดการตรวจจับเสียง";
-btn.style.backgroundColor = "#dc3545";
+labelContainer.innerHTML = "กำลังฟังเสียง...";
 
-// จำลองสุ่มเจอเสียงเกาทุกๆ 4-8 วินาที
-scratchInterval = setInterval(() => {
-scratchCounter++;
-document.getElementById('scratchCount').innerText = scratchCounter;
-updateLiveSeverity(scratchCounter);
-}, Math.floor(Math.random() * 4000) + 4000);
+recognizer.listen(result => {
+const scores = result.scores;
+let highestScore = 0;
+let bestClass = "";
 
-} else {
-// เปลี่ยนสถานะเป็นหยุดงาน
-isRecording = false;
-rBox.classList.remove('recording');
-statusT.innerText = "ระบบปิดอยู่";
-btn.innerText = "▶️ เริ่มตรวจจับเสียงเกา";
-btn.style.backgroundColor = "var(--secondary-color)";
-clearInterval(scratchInterval);
+// หาคลาสที่ AI มั่นใจที่สุด ณ วินาทีนั้น
+for (let i = 0; i < classLabels.length; i++) {
+if (scores[i] > highestScore) {
+highestScore = scores[i];
+bestClass = classLabels[i];
 }
 }
 
-// อัปเดตความรุนแรงแบบเรียลไทม์ตามจำนวนครั้งที่เกาคืนนี้
-function updateLiveSeverity(count) {
-const badge = document.getElementById('severityBadge');
-if(count <= 15) {
-badge.innerText = "น้อย (Mild)";
-badge.className = "severity-badge sev-low";
-} else if(count <= 40) {
-badge.innerText = "ปานกลาง (Moderate)";
-badge.className = "severity-badge sev-mid";
-} else {
-badge.innerText = "รุนแรง (Severe)";
-badge.className = "severity-badge sev-high";
-}
-}
-
-// 6. ระบบเปลี่ยนธีมแอป (Light/Dark Mode)
-function toggleTheme() {
-const currentTheme = document.documentElement.getAttribute('data-theme');
-if (currentTheme === 'dark') {
-document.documentElement.setAttribute('data-theme', 'light');
-} else {
-document.documentElement.setAttribute('data-theme', 'dark');
-}
-if(weeklyChartInstance) initChart(); // วาดกราฟใหม่เพื่อให้สีกราฟเปลี่ยนตามธีม
-}
-
-// 7. ระบบวาดกราฟแท่งผสมกราฟเส้นประจำสัปดาห์ (Chart.js)
-function initChart() {
-const ctx = document.getElementById('weeklyChart').getContext('2d');
-
-// เช็กสีตัวอักษรตามธีมปัจจุบัน
-const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-const textColor = isDark ? '#ffffff' : '#333333';
-
-if(weeklyChartInstance) { weeklyChartInstance.destroy(); }
-
-weeklyChartInstance = new Chart(ctx, {
-data: {
-labels: ['จันทร์', 'อังคาร', 'พุธ', 'พฤหัสฯ', 'ศุกร์', 'เสาร์', 'อาทิตย์'],
-datasets: [
-{
-type: 'bar',
-label: 'จำนวนเกา (ครั้ง/คืน)',
-data: [12, 45, 28, 55, 22, 18, 32],
-backgroundColor: 'rgba(55, 146, 255, 0.6)',
-borderColor: '#3792ff',
-borderWidth: 1,
-borderRadius: 5
-},
-{
-type: 'line',
-label: 'เส้นแนวโน้มความถี่',
-data: [12, 45, 28, 55, 22, 18, 32],
-borderColor: '#dc3545',
-borderWidth: 2,
-fill: false,
-tension: 0.3,
-pointBackgroundColor: '#dc3545'
-}
-]
-},
-options: {
-responsive: true,
-maintainAspectRatio: false,
-plugins: {
-legend: { labels: { color: textColor } }
-},
-scales: {
-y: {
-beginAtZero: true,
-ticks: { color: textColor },
-grid: { color: isDark ? '#333333' : '#e0e0e0' }
-},
-x: {
-ticks: { color: textColor },
-grid: { display: false }
-}
-}
-}
+// แสดงผลลัพธ์เสียงที่ตรวจเจอหน้าจอ
+labelContainer.innerHTML = `📢 เสียงที่ตรวจเจอตอนนี้: <span style="color:var(--primary-color)">${bestClass}</span> (ความแม่นยำ: ${(highestScore*100).toFixed(0)}%)`;
+}, {
+includeSpectrogram: true,
+probabilityThreshold: 0.75,
+invokeCallbackOnNoiseAndUnknown: true,
+overlapFactor: 0.50
 });
 }
 </script>
+
 </body>
 </html>
+
